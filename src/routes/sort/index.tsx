@@ -312,6 +312,6 @@ const SortSimulator = () => {
   )
 }
 
-export const Route = createFileRoute("/insertion-sort/")({
+export const Route = createFileRoute("/sort/")({
   component: SortSimulator,
 })
