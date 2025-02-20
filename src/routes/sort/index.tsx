@@ -11,13 +11,18 @@ import {
 import { Slider } from "@/components/ui/slider"
 import { createFileRoute } from "@tanstack/react-router"
 import { Pause, Play, RotateCcw, SkipForward } from "lucide-react"
+import { motion } from "motion/react"
 import {
   type ReactNode,
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react"
+import { useInterval } from "usehooks-ts"
+import { insertionSort } from "./-lib/insertion-sort"
+import type { Item, Step } from "./-lib/types"
 
 const ALGORITHMS = [
   { name: "Bubble Sort", value: "bubble" },
@@ -29,6 +34,7 @@ const SPEEDS = [
   { name: "Slow", value: "slow" },
   { name: "Medium", value: "medium" },
   { name: "Fast", value: "fast" },
+  { name: "Super Fast", value: "super-fast" },
 ] as const
 
 // Create a context for the sort simulation
@@ -36,6 +42,7 @@ type SortSimulationContextType = {
   algorithm: (typeof ALGORITHMS)[number]["value"]
   setAlgorithm: (value: (typeof ALGORITHMS)[number]["value"]) => void
   data: number[]
+  steps: Step[]
   setData: (value: number[]) => void
   sorting: boolean
   startSorting: () => void
@@ -45,6 +52,7 @@ type SortSimulationContextType = {
   totalSteps: number
   speed: (typeof SPEEDS)[number]["value"]
   setSpeed: (value: (typeof SPEEDS)[number]["value"]) => void
+  duration: number
   inputData: string
   handleInputDataChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   applyInputData: () => void
@@ -58,14 +66,46 @@ const SortSimulationContext = createContext<
 
 const SortSimulationProvider = ({ children }: { children: ReactNode }) => {
   const [algorithm, setAlgorithm] =
-    useState<SortSimulationContextType["algorithm"]>("bubble")
+    useState<SortSimulationContextType["algorithm"]>("insertion")
   const [data, setData] = useState<number[]>([])
+  const steps = useMemo(() => {
+    switch (algorithm) {
+      case "insertion":
+        return insertionSort(data)
+      default:
+        console.error("Algorithm not implemented yet")
+        return []
+    }
+  }, [data, algorithm])
+  const totalSteps = useMemo(() => steps.length, [steps])
   const [sorting, setSorting] = useState(false)
-  const [currentStep, setCurrentStep] = useState(0)
-  const [totalSteps, setTotalSteps] = useState(0)
+  const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [speed, setSpeed] =
     useState<SortSimulationContextType["speed"]>("medium")
+  const duration = useMemo(() => {
+    switch (speed) {
+      case "super-fast":
+        return 0.2
+      case "fast":
+        return 0.5
+      case "medium":
+        return 1
+      case "slow":
+        return 2
+    }
+  }, [speed])
   const [inputData, setInputData] = useState("")
+
+  useInterval(
+    () => {
+      if (sorting && currentStepIndex < totalSteps - 1) {
+        setCurrentStepIndex((prevStep) => prevStep + 1)
+      } else {
+        setSorting(false)
+      }
+    },
+    sorting ? duration * 1000 : null,
+  )
 
   useEffect(() => {
     generateRandomData()
@@ -76,6 +116,7 @@ const SortSimulationProvider = ({ children }: { children: ReactNode }) => {
       { length: 20 },
       () => Math.floor(Math.random() * 100) + 1,
     )
+    setInputData(newData.join(", "))
     setData(newData)
     resetSimulation(newData)
   }
@@ -97,7 +138,6 @@ const SortSimulationProvider = ({ children }: { children: ReactNode }) => {
 
   const startSorting = () => {
     setSorting(true)
-    // Implement sorting logic here
   }
 
   const pauseSorting = () => {
@@ -105,18 +145,18 @@ const SortSimulationProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const nextStep = () => {
-    // Implement next step logic here
+    if (currentStepIndex < totalSteps - 1) {
+      setCurrentStepIndex((prevStep) => prevStep + 1)
+    }
   }
 
   const resetSimulation = (newData: number[] = data) => {
     setSorting(false)
-    setCurrentStep(0)
-    setTotalSteps((newData.length * (newData.length - 1)) / 2) // Approximation
+    setCurrentStepIndex(0)
   }
 
   const handleStepChange = (value: number[]) => {
-    setCurrentStep(value[0])
-    // Implement logic to update data state based on the selected step
+    setCurrentStepIndex(value[0])
   }
 
   return (
@@ -126,14 +166,16 @@ const SortSimulationProvider = ({ children }: { children: ReactNode }) => {
         setAlgorithm,
         data,
         setData,
+        steps,
         sorting,
         startSorting,
         pauseSorting,
         nextStep,
-        currentStep,
+        currentStep: currentStepIndex,
         totalSteps,
         speed,
         setSpeed,
+        duration,
         inputData,
         handleInputDataChange,
         applyInputData,
@@ -147,11 +189,11 @@ const SortSimulationProvider = ({ children }: { children: ReactNode }) => {
   )
 }
 
-const useSortSimulationContext = () => {
+const useSortSimulation = () => {
   const context = useContext(SortSimulationContext)
   if (!context)
     throw new Error(
-      "useSortSimulationContext must be used within a SortSimulationProvider",
+      "useSortSimulation must be used within a SortSimulationProvider",
     )
   return context
 }
@@ -166,7 +208,7 @@ const FormSection = () => {
     handleInputDataChange,
     applyInputData,
     generateRandomData,
-  } = useSortSimulationContext()
+  } = useSortSimulation()
 
   return (
     <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -207,6 +249,11 @@ const FormSection = () => {
             id="data-input"
             value={inputData}
             onChange={handleInputDataChange}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                applyInputData()
+              }
+            }}
             placeholder="e.g. 64, 34, 25, 12, 22, 11, 90"
           />
           <Button onClick={applyInputData}>Apply</Button>
@@ -220,16 +267,53 @@ const FormSection = () => {
 }
 
 const DisplaySection = () => {
-  const { data } = useSortSimulationContext()
+  const { steps, currentStep, duration } = useSortSimulation()
+  const step = useMemo(
+    () =>
+      steps.at(currentStep)?.reduce<
+        {
+          key: number
+          value: number
+          indices: number[]
+          positions: Item["position"][]
+        }[]
+      >((acc, items) => {
+        for (const [itemIndex, item] of items.entries()) {
+          acc[item.key] ??= {
+            key: item.key,
+            value: item.value,
+            indices: [],
+            positions: [],
+          }
+          acc[item.key].indices.push(itemIndex)
+          acc[item.key].positions.push(item.position)
+        }
+        return acc
+      }, []),
+    [steps, currentStep],
+  )
+
   return (
     <div className="mb-4">
-      <div className="flex h-64 items-end space-x-1 rounded-lg bg-gray-100 p-2">
-        {data.map((value, index) => (
-          <div
-            // biome-ignore lint/suspicious/noArrayIndexKey: This is a simulation, the index is used as a key
-            key={index}
-            className="w-4 rounded-t bg-blue-500"
-            style={{ height: `${(value / Math.max(...data)) * 100}%` }}
+      <div className="relative flex h-64">
+        {step?.map(({ value, key, positions, indices }) => (
+          <motion.div
+            key={key}
+            animate={{
+              x: indices.map((index) => index * 20),
+              backgroundColor: positions.map((position) =>
+                position === "middle"
+                  ? "#3182ce"
+                  : position === "bottom"
+                    ? "#f56565"
+                    : "#48bb78",
+              ),
+            }}
+            transition={{ duration }}
+            className={"absolute bottom-0 w-4 rounded-t"}
+            style={{
+              height: `${(value / Math.max(...step.map(({ value }) => value))) * 100}%`,
+            }}
           />
         ))}
       </div>
@@ -247,7 +331,7 @@ const ControlSection = () => {
     currentStep,
     totalSteps,
     handleStepChange,
-  } = useSortSimulationContext()
+  } = useSortSimulation()
 
   return (
     <>
@@ -271,30 +355,17 @@ const ControlSection = () => {
       </div>
       <div className="mb-4">
         <Label htmlFor="step-slider">
-          Step: {currentStep} / {totalSteps}
+          Step: {currentStep} / {totalSteps - 1}
         </Label>
         <Slider
           id="step-slider"
           value={[currentStep]}
           onValueChange={handleStepChange}
-          max={totalSteps}
+          max={totalSteps - 1}
           step={1}
         />
       </div>
     </>
-  )
-}
-
-const InfoSection = () => {
-  const { algorithm, speed } = useSortSimulationContext()
-
-  return (
-    <div>
-      <p>
-        Algorithm: {ALGORITHMS.find((algo) => algo.value === algorithm)?.name}
-      </p>
-      <p>Speed: {SPEEDS.find((s) => s.value === speed)?.name}</p>
-    </div>
   )
 }
 
@@ -306,7 +377,6 @@ const SortSimulator = () => {
         <FormSection />
         <DisplaySection />
         <ControlSection />
-        <InfoSection />
       </div>
     </SortSimulationProvider>
   )
