@@ -283,7 +283,6 @@ const DisplaySection = () => {
   const { steps, prevStepIndex, currentStepIndex, duration } =
     useSortSimulation()
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: currentStepIndex is the only dependency
   const animation = useMemo(() => {
     const isReversed =
       prevStepIndex !== undefined && prevStepIndex > currentStepIndex
@@ -309,7 +308,7 @@ const DisplaySection = () => {
     }
 
     return animation
-  }, [currentStepIndex])
+  }, [steps, currentStepIndex, prevStepIndex])
 
   return (
     <div className="mb-4">

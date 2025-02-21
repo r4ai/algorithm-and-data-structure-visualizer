@@ -7,7 +7,11 @@ export const getStepIndices = (
   if (prevIndex === undefined || prevIndex === currentIndex) {
     return [currentIndex]
   }
-  return prevIndex < currentIndex
-    ? rangeBetween(prevIndex + 1, currentIndex)
-    : rangeBetween(prevIndex, currentIndex + 1)
+  if (prevIndex < currentIndex) {
+    return rangeBetween(prevIndex + 1, currentIndex)
+  }
+  if (currentIndex === 0) {
+    return rangeBetween(prevIndex, 0)
+  }
+  return rangeBetween(prevIndex, currentIndex + 1)
 }
