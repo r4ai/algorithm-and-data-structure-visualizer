@@ -38,7 +38,7 @@ export const selectionSort = (data: number[]): Step[] => {
 
   for (
     let unsortedStartIndex = 0;
-    unsortedStartIndex < data.length - 1;
+    unsortedStartIndex < result.length - 1;
     unsortedStartIndex++
   ) {
     let minIndex = unsortedStartIndex
@@ -48,8 +48,8 @@ export const selectionSort = (data: number[]): Step[] => {
         position: index === minIndex ? "bottom" : "middle",
       })),
     ])
-    for (let i = unsortedStartIndex + 1; i < data.length; i++) {
-      if (data[i] < data[minIndex]) {
+    for (let i = unsortedStartIndex + 1; i < result.length; i++) {
+      if (result[i].value < result[minIndex].value) {
         minIndex = i
       }
       steps.push([
