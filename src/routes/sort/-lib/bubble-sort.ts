@@ -1,24 +1,5 @@
+import { swap } from "@/lib/utils"
 import type { Step } from "./types"
-
-const swap = <T>(data: T[], i: number, j: number): void => {
-  const temp = { ...data[i] }
-  data[i] = data[j]
-  data[j] = temp
-}
-
-const b = (data: number[]): number[] => {
-  let sorting = true
-  for (let sortedEndIndex = 0; sorting; sortedEndIndex++) {
-    sorting = false
-    for (let i = data.length - 1; i >= sortedEndIndex + 1; i--) {
-      if (data[i] < data[i - 1]) {
-        swap(data, i, i - 1)
-        sorting = true
-      }
-    }
-  }
-  return data
-}
 
 export const bubbleSort = (data: number[]): Step[] => {
   const steps: Step[] = [

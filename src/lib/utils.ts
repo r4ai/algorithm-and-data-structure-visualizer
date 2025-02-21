@@ -22,3 +22,27 @@ export const rangeBetween = (start: number, end: number) => {
   }
   return Array.from({ length: end - start + 1 }, (_, i) => start + i)
 }
+
+const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value))
+
+/**
+ * Swaps two elements in an array.
+ *
+ * @param data - The array containing elements to be swapped.
+ * @param i - The index of the first element.
+ * @param j - The index of the second element.
+ *
+ * @example
+ * const data = [1, 2, 3, 4, 5]
+ * swap(data, 0, 4)
+ * console.log(data) // [5, 2, 3, 4, 1]
+ */
+export const swap = <T>(data: T[], i: number, j: number): void => {
+  if (i < 0 || i >= data.length || j < 0 || j >= data.length) {
+    throw new Error("Index out of bounds")
+  }
+
+  const temp = clone(data[i])
+  data[i] = clone(data[j])
+  data[j] = temp
+}

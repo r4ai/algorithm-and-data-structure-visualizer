@@ -24,6 +24,7 @@ import {
 import { useInterval } from "usehooks-ts"
 import { bubbleSort } from "./-lib/bubble-sort"
 import { insertionSort } from "./-lib/insertion-sort"
+import { selectionSort } from "./-lib/selection-sort"
 import type { Item, Step } from "./-lib/types"
 import { getStepIndices } from "./-lib/utils"
 
@@ -78,8 +79,8 @@ const SortSimulationProvider = ({ children }: { children: ReactNode }) => {
         return insertionSort(data)
       case "bubble":
         return bubbleSort(data)
-      default:
-        throw new Error("Invalid algorithm")
+      case "selection":
+        return selectionSort(data)
     }
   }, [data, algorithm])
   const totalSteps = useMemo(() => steps.length, [steps])
