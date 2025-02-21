@@ -36,6 +36,8 @@ describe("insertion-sort", () => {
           { key: 1, value: 3, position: "bottom" },
           { key: 0, value: 5, position: "middle" },
         ],
+      ],
+      [
         [
           { key: 1, value: 3, position: "middle" },
           { key: 0, value: 5, position: "middle" },
@@ -76,14 +78,6 @@ describe("insertion-sort", () => {
           { key: 4, value: 1, position: "middle" },
           { key: 5, value: 3, position: "middle" },
         ],
-        [
-          { key: 1, value: 2, position: "middle" },
-          { key: 0, value: 5, position: "middle" },
-          { key: 2, value: 4, position: "middle" },
-          { key: 3, value: 6, position: "middle" },
-          { key: 4, value: 1, position: "middle" },
-          { key: 5, value: 3, position: "middle" },
-        ],
       ],
       [
         [
@@ -97,14 +91,6 @@ describe("insertion-sort", () => {
         [
           { key: 1, value: 2, position: "middle" },
           { key: 2, value: 4, position: "bottom" },
-          { key: 0, value: 5, position: "middle" },
-          { key: 3, value: 6, position: "middle" },
-          { key: 4, value: 1, position: "middle" },
-          { key: 5, value: 3, position: "middle" },
-        ],
-        [
-          { key: 1, value: 2, position: "middle" },
-          { key: 2, value: 4, position: "middle" },
           { key: 0, value: 5, position: "middle" },
           { key: 3, value: 6, position: "middle" },
           { key: 4, value: 1, position: "middle" },
@@ -128,14 +114,6 @@ describe("insertion-sort", () => {
           { key: 4, value: 1, position: "middle" },
           { key: 5, value: 3, position: "middle" },
         ],
-        [
-          { key: 1, value: 2, position: "middle" },
-          { key: 2, value: 4, position: "middle" },
-          { key: 0, value: 5, position: "middle" },
-          { key: 3, value: 6, position: "middle" },
-          { key: 4, value: 1, position: "middle" },
-          { key: 5, value: 3, position: "middle" },
-        ],
       ],
       [
         [
@@ -148,14 +126,6 @@ describe("insertion-sort", () => {
         ],
         [
           { key: 4, value: 1, position: "bottom" },
-          { key: 1, value: 2, position: "middle" },
-          { key: 2, value: 4, position: "middle" },
-          { key: 0, value: 5, position: "middle" },
-          { key: 3, value: 6, position: "middle" },
-          { key: 5, value: 3, position: "middle" },
-        ],
-        [
-          { key: 4, value: 1, position: "middle" },
           { key: 1, value: 2, position: "middle" },
           { key: 2, value: 4, position: "middle" },
           { key: 0, value: 5, position: "middle" },
@@ -180,6 +150,8 @@ describe("insertion-sort", () => {
           { key: 0, value: 5, position: "middle" },
           { key: 3, value: 6, position: "middle" },
         ],
+      ],
+      [
         [
           { key: 4, value: 1, position: "middle" },
           { key: 1, value: 2, position: "middle" },

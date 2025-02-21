@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
+import { usePrevious } from "@/lib/use-previous"
 import { createFileRoute } from "@tanstack/react-router"
 import { Pause, Play, RotateCcw, SkipForward } from "lucide-react"
 import { motion } from "motion/react"
@@ -21,6 +22,7 @@ import {
   useState,
 } from "react"
 import { useInterval } from "usehooks-ts"
+import { bubbleSort } from "./-lib/bubble-sort"
 import { insertionSort } from "./-lib/insertion-sort"
 import type { Item, Step } from "./-lib/types"
 
@@ -48,7 +50,8 @@ type SortSimulationContextType = {
   startSorting: () => void
   pauseSorting: () => void
   nextStep: () => void
-  currentStep: number
+  currentStepIndex: number
+  prevStepIndex: number | undefined
   totalSteps: number
   speed: (typeof SPEEDS)[number]["value"]
   setSpeed: (value: (typeof SPEEDS)[number]["value"]) => void
@@ -72,14 +75,15 @@ const SortSimulationProvider = ({ children }: { children: ReactNode }) => {
     switch (algorithm) {
       case "insertion":
         return insertionSort(data)
+      case "bubble":
+        return bubbleSort(data)
       default:
-        console.error("Algorithm not implemented yet")
-        return []
+        throw new Error("Invalid algorithm")
     }
   }, [data, algorithm])
   const totalSteps = useMemo(() => steps.length, [steps])
   const [sorting, setSorting] = useState(false)
-  const [currentStepIndex, setCurrentStepIndex] = useState(0)
+  const [prevStepIndex, currentStepIndex, setCurrentStepIndex] = usePrevious(0)
   const [speed, setSpeed] =
     useState<SortSimulationContextType["speed"]>("medium")
   const duration = useMemo(() => {
@@ -171,7 +175,8 @@ const SortSimulationProvider = ({ children }: { children: ReactNode }) => {
         startSorting,
         pauseSorting,
         nextStep,
-        currentStep: currentStepIndex,
+        currentStepIndex,
+        prevStepIndex,
         totalSteps,
         speed,
         setSpeed,
@@ -266,18 +271,28 @@ const FormSection = () => {
   )
 }
 
+type StepAnimation = {
+  key: number
+  value: number
+  indices: number[]
+  positions: Item["position"][]
+}
+
 const DisplaySection = () => {
-  const { steps, currentStep, duration } = useSortSimulation()
-  const step = useMemo(
-    () =>
-      steps.at(currentStep)?.reduce<
-        {
-          key: number
-          value: number
-          indices: number[]
-          positions: Item["position"][]
-        }[]
-      >((acc, items) => {
+  const { steps, prevStepIndex, currentStepIndex, duration } =
+    useSortSimulation()
+  const isReversed = useMemo(
+    () => prevStepIndex !== undefined && prevStepIndex > currentStepIndex,
+    [prevStepIndex, currentStepIndex],
+  )
+  const animation = useMemo(() => {
+    const stepIndex =
+      prevStepIndex !== undefined && isReversed
+        ? prevStepIndex
+        : currentStepIndex
+    const animation = steps
+      .at(stepIndex)
+      ?.reduce<StepAnimation[]>((acc, items) => {
         for (const [itemIndex, item] of items.entries()) {
           acc[item.key] ??= {
             key: item.key,
@@ -289,14 +304,20 @@ const DisplaySection = () => {
           acc[item.key].positions.push(item.position)
         }
         return acc
-      }, []),
-    [steps, currentStep],
-  )
+      }, [])
+    return isReversed
+      ? animation?.map((item) => ({
+          ...item,
+          indices: item.indices.reverse(),
+          positions: item.positions.reverse(),
+        }))
+      : animation
+  }, [steps, currentStepIndex, prevStepIndex, isReversed])
 
   return (
     <div className="mb-4">
       <div className="relative flex h-64">
-        {step?.map(({ value, key, positions, indices }) => (
+        {animation?.map(({ value, key, positions, indices }) => (
           <motion.div
             key={key}
             animate={{
@@ -312,7 +333,7 @@ const DisplaySection = () => {
             transition={{ duration }}
             className={"absolute bottom-0 w-4 rounded-t"}
             style={{
-              height: `${(value / Math.max(...step.map(({ value }) => value))) * 100}%`,
+              height: `${(value / Math.max(...animation.map(({ value }) => value))) * 100}%`,
             }}
           />
         ))}
@@ -328,7 +349,7 @@ const ControlSection = () => {
     pauseSorting,
     nextStep,
     resetSimulation,
-    currentStep,
+    currentStepIndex: currentStep,
     totalSteps,
     handleStepChange,
   } = useSortSimulation()

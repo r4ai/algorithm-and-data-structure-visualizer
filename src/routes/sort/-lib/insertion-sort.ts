@@ -33,16 +33,17 @@ export const insertionSort = (data: number[]): Step[] => {
           position: index === j + 1 ? "bottom" : "middle",
         })),
       )
-      step.push(
-        result.map((value) => ({
-          ...value,
-          position: "middle",
-        })),
-      )
     }
 
     steps.push(step)
   }
+
+  steps.push([
+    result.map((value) => ({
+      ...value,
+      position: "middle",
+    })),
+  ])
 
   return steps
 }
