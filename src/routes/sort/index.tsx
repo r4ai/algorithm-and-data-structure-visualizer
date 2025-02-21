@@ -25,6 +25,7 @@ import { useInterval } from "usehooks-ts"
 import { bubbleSort } from "./-lib/bubble-sort"
 import { insertionSort } from "./-lib/insertion-sort"
 import type { Item, Step } from "./-lib/types"
+import { getStepIndices } from "./-lib/utils"
 
 const ALGORITHMS = [
   { name: "Bubble Sort", value: "bubble" },
@@ -281,38 +282,34 @@ type StepAnimation = {
 const DisplaySection = () => {
   const { steps, prevStepIndex, currentStepIndex, duration } =
     useSortSimulation()
-  const isReversed = useMemo(
-    () => prevStepIndex !== undefined && prevStepIndex > currentStepIndex,
-    [prevStepIndex, currentStepIndex],
-  )
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: currentStepIndex is the only dependency
   const animation = useMemo(() => {
-    const stepIndex =
-      prevStepIndex !== undefined && isReversed
-        ? prevStepIndex
-        : currentStepIndex
-    const animation = steps
-      .at(stepIndex)
-      ?.reduce<StepAnimation[]>((acc, items) => {
+    const isReversed =
+      prevStepIndex !== undefined && prevStepIndex > currentStepIndex
+    const stepIndices = getStepIndices(prevStepIndex, currentStepIndex)
+    console.log("stepIndices", isReversed, stepIndices)
+
+    const animation: StepAnimation[] = []
+    for (const stepIndex of stepIndices) {
+      const step = steps.at(stepIndex)
+      if (!step) continue
+      for (const items of isReversed ? step.toReversed() : step) {
         for (const [itemIndex, item] of items.entries()) {
-          acc[item.key] ??= {
+          animation[item.key] ??= {
             key: item.key,
             value: item.value,
             indices: [],
             positions: [],
           }
-          acc[item.key].indices.push(itemIndex)
-          acc[item.key].positions.push(item.position)
+          animation[item.key].indices.push(itemIndex)
+          animation[item.key].positions.push(item.position)
         }
-        return acc
-      }, [])
-    return isReversed
-      ? animation?.map((item) => ({
-          ...item,
-          indices: item.indices.reverse(),
-          positions: item.positions.reverse(),
-        }))
-      : animation
-  }, [steps, currentStepIndex, prevStepIndex, isReversed])
+      }
+    }
+
+    return animation
+  }, [currentStepIndex])
 
   return (
     <div className="mb-4">
