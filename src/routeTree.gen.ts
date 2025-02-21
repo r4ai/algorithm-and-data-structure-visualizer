@@ -11,18 +11,10 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as AboutImport } from './routes/about'
 import { Route as IndexImport } from './routes/index'
 import { Route as SortIndexImport } from './routes/sort/index'
-import { Route as InsertionSortIndexImport } from './routes/insertion-sort/index'
 
 // Create/Update Routes
-
-const AboutRoute = AboutImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRoute,
-} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -36,12 +28,6 @@ const SortIndexRoute = SortIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const InsertionSortIndexRoute = InsertionSortIndexImport.update({
-  id: '/insertion-sort/',
-  path: '/insertion-sort/',
-  getParentRoute: () => rootRoute,
-} as any)
-
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -51,20 +37,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutImport
-      parentRoute: typeof rootRoute
-    }
-    '/insertion-sort/': {
-      id: '/insertion-sort/'
-      path: '/insertion-sort'
-      fullPath: '/insertion-sort'
-      preLoaderRoute: typeof InsertionSortIndexImport
       parentRoute: typeof rootRoute
     }
     '/sort/': {
@@ -81,46 +53,36 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/insertion-sort': typeof InsertionSortIndexRoute
   '/sort': typeof SortIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/insertion-sort': typeof InsertionSortIndexRoute
   '/sort': typeof SortIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
-  '/insertion-sort/': typeof InsertionSortIndexRoute
   '/sort/': typeof SortIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/insertion-sort' | '/sort'
+  fullPaths: '/' | '/sort'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/insertion-sort' | '/sort'
-  id: '__root__' | '/' | '/about' | '/insertion-sort/' | '/sort/'
+  to: '/' | '/sort'
+  id: '__root__' | '/' | '/sort/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
-  InsertionSortIndexRoute: typeof InsertionSortIndexRoute
   SortIndexRoute: typeof SortIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
-  InsertionSortIndexRoute: InsertionSortIndexRoute,
   SortIndexRoute: SortIndexRoute,
 }
 
@@ -135,19 +97,11 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/about",
-        "/insertion-sort/",
         "/sort/"
       ]
     },
     "/": {
       "filePath": "index.tsx"
-    },
-    "/about": {
-      "filePath": "about.tsx"
-    },
-    "/insertion-sort/": {
-      "filePath": "insertion-sort/index.tsx"
     },
     "/sort/": {
       "filePath": "sort/index.tsx"
